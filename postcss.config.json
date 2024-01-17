@@ -1,3 +1,11 @@
 {
-  "plugins": ["postcss-flexbugs-fixes", "postcss-preset-env"]
+  "plugins": [
+    "postcss-flexbugs-fixes",
+    "postcss-preset-env",
+    ["@csstools/postcss-global-data", {
+      "files": ["src/styles/breakpoints.css"]
+    }],
+    "postcss-custom-media",
+    "postcss-modules-values"
+  ]
 }
