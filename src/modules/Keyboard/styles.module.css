@@ -1,0 +1,40 @@
+.keyboard {
+  --key-size: 42px;
+
+  display: flex;
+  padding-top: var(--key-size);
+  justify-content: center;
+  gap: 4px;
+}
+
+.key {
+  position: relative;
+}
+
+.sharp {
+  width: 0;
+
+  & .keyButton {
+    position: relative;
+    transform: translateY(calc(var(--key-size) * -1)) translateX(-50%);
+  }
+}
+
+.keyButton {
+  width: var(--key-size);
+  height: var(--key-size);
+  border: 1px solid #aaa;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  transition: border-color 0.3s ease;
+  font-weight: 300;
+  font-size: calc(var(--key-size) * 0.25);
+}
+
+.key.active .keyButton {
+  border-color: #fff;
+  background-color: #fff;
+  color: #000;
+  font-weight: 600;
+}
