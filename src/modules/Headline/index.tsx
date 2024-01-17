@@ -1,7 +1,9 @@
+"use client";
+
 import { Logo } from "@/components/Logo";
 import styles from "./styles.module.css";
 import p5 from "p5";
-import { P5 } from "@/components/P5";
+import P5Component from "@/components/P5";
 
 const sketch = (p: p5) => {
   const modFuncs = [
@@ -54,7 +56,7 @@ export const Headline = () => {
     <div className={styles.headline}>
       <Logo />
 
-      <P5 sketch={sketch} />
+      <P5Component sketch={sketch} />
     </div>
   );
 };
