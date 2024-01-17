@@ -1,5 +1,5 @@
 .keyboard {
-  --key-size: 42px;
+  --key-size: 64px;
 
   display: flex;
   padding-top: var(--key-size);
@@ -27,9 +27,11 @@
   border-radius: 50%;
   background: none;
   color: #fff;
-  transition: border-color 0.3s ease;
   font-weight: 300;
   font-size: calc(var(--key-size) * 0.25);
+  animation: fadeIn .4s ease both;
+  animation-delay: calc(var(--index) * 0.05s);
+  transform-origin: 50% 0;
 }
 
 .key.active .keyButton {
@@ -37,4 +39,16 @@
   background-color: #fff;
   color: #000;
   font-weight: 600;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    scale: 0.7;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
 }
