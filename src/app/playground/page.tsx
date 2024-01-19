@@ -36,7 +36,7 @@ const Playground = () => {
 
         // LFO
         const lfo = new OscillatorNode(ctx.current, {
-          frequency: 1,
+          frequency: 5,
           type: "sine",
         });
 

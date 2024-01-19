@@ -6,7 +6,7 @@ export const sketch = (p: p5) => {
   const normalSin = (x: number, dt: number): number => {
     let cx = p.constrain(x, 0, 1);
 
-    return p.sin(cx * p.PI * 2 + dt);
+    return p.sin(cx * p.PI * 5 + dt);
   };
 
   p.setup = () => {
@@ -20,14 +20,14 @@ export const sketch = (p: p5) => {
 
     let cy = p.height / 2;
     let amp = Math.floor(cy * 0.8);
-    let dt = ((p.millis() / 1000) % p.width) * p.TWO_PI * 0.5;
+    let dt = ((p.millis() / 1000) % p.width) * p.PI * 5;
 
     p.beginShape();
     p.strokeWeight(1)
     for (let x = 0; x < p.width; x++) {
       let dx = x / p.width; // 0 to 1
       let filteredAmp = normalSin(dx, dt) * amp;
-      let y = cy + filteredAmp * p.sin(dx * p.TWO_PI * fq/2 + dt);
+      let y = cy + filteredAmp * p.sin(dx * p.TWO_PI * fq + dt);
 
       p.vertex(x, y);
     }
