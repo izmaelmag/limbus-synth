@@ -8,7 +8,7 @@ const Playground = () => {
   const ctx = useRef<AudioContext>();
   const osc = useRef<OscillatorNode>();
 
-  const fq = 35;
+  const fq = 21.83 * Math.pow(2, 3);
 
   useEffect(() => {
     const context = new AudioContext();

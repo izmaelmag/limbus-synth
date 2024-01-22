@@ -2,6 +2,8 @@ import cn from "classnames";
 import type { Metadata } from "next";
 import { Libre_Franklin } from "next/font/google";
 import "./globals.css";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
 
 export const metadata: Metadata = {
   title: "Limbus",
