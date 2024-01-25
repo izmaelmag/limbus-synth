@@ -1,0 +1,28 @@
+.container {
+
+}
+
+.lamp {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #777;
+}
+
+.blink {
+  animation: blink 100ms both;
+}
+
+@keyframes blink {
+  0% {
+    background: #777;
+  } 
+
+  50% {
+    background: #7f7;
+  } 
+
+  100% {
+    background: #777;
+  }
+}
