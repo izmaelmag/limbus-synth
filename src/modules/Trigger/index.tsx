@@ -9,10 +9,17 @@ import {
 } from "react";
 import styles from "./styles.module.css";
 import { useAudio } from "@/hooks/useAudio";
+import { Slider } from "@/components/Slider";
+import {
+  CircularInput,
+  CircularProgress,
+  CircularThumb,
+  CircularTrack,
+} from "react-circular-input";
 
 type Props = {
   interval?: number;
-  onTrigger: (t: number) => void;
+  onTrigger: (count: number) => void;
 };
 
 export const Trigger = ({ interval = 1000, onTrigger }: Props) => {
@@ -22,51 +29,48 @@ export const Trigger = ({ interval = 1000, onTrigger }: Props) => {
   const [intervalMS, changeInterval] = useState<number>(interval);
   const { ctx } = useAudio();
 
-  const trigger = useCallback(
-    (time: number) => {
-      if (active) {
-        console.log("Trigger tick");
-        setCount(count + 1);
-        onTrigger(time);
-      }
-    },
-    [onTrigger, count, active]
-  );
+  const trigger = useCallback(() => {
+    if (active) {
+      setCount(count + 1);
+      onTrigger(count);
+    }
+  }, [onTrigger, count, active]);
 
   useEffect(() => {
     const intId = setInterval(() => {
-      trigger(ctx.currentTime);
+      trigger();
     }, intervalMS);
 
     return () => clearInterval(intId);
   }, [trigger]);
 
-  const handleDelayChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    changeInterval(Number(e.currentTarget.value));
+  const handleDelayChange = (val: number) => {
+    console.log(val);
+    changeInterval(val);
   };
 
   return (
     <div className={styles.container}>
-      <div
+      {/* <div
         key={`lamp-count-${count}`}
         className={cn(styles.lamp, { [styles.blink]: active && count > 0 })}
-      />
+      /> */}
 
-      <input
+      <Slider
         onChange={handleDelayChange}
-        type="range"
-        min={50}
+        min={100}
         max={1000}
         step={10}
-        value={intervalMS}
+        value={500}
+        labels={["1", "2"]}
       />
 
-      <span>{intervalMS} ms</span>
-      <div>Tick: {count}</div>
-
+      <div>{intervalMS} ms</div>
+      {/* <div>Tick: {count}</div> */}
+      {/* 
       <button type="button" onClick={() => toggle(!active)}>
         {active ? "off" : "on"}
-      </button>
+      </button> */}
     </div>
   );
 };

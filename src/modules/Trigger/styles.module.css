@@ -1,5 +1,9 @@
 .container {
-
+  border: 1px solid #fff;
+  padding: 4px;
+  width: auto;
+  display: inline-flex;
+  flex-direction: column;
 }
 
 .lamp {

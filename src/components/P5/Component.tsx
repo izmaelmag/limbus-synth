@@ -15,7 +15,13 @@ const P5 = ({ sketch }: Props) => {
     if (!P5 && containerRef.current) {
       setP5(new p5(sketch, containerRef.current));
     }
+
+    () => setP5(null);
   }, [setP5, sketch, P5]);
+
+  useEffect(() => {
+  console.log('mount')
+  }, []);
 
   return <div ref={containerRef} />;
 };
