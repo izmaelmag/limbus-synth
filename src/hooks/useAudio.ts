@@ -5,8 +5,15 @@ export const useAudio = () => {
   const { ctx: context } = useContext(AudioCTX);
 
   const output = useMemo(() => {
-    console.log("Context init: ", context);
-    return { ctx: context };
+    if (context) {
+      console.log("Context init: ", context);
+      return { ctxReady: true, ctx: context };
+    }
+
+    return {
+      ctxReady: false,
+      ctx: null,
+    };
   }, [context]);
 
   return output;

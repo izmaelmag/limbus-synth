@@ -1,9 +1,9 @@
 import { createContext } from "react";
 
 interface AudioContextProps {
-  ctx: AudioContext;
+  ctx: AudioContext | null;
 }
 
 export const AudioCTX = createContext<AudioContextProps>({
-  ctx: new AudioContext(),
+  ctx: typeof window !== "undefined" ? new AudioContext() : null,
 });
