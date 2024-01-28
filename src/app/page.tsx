@@ -47,31 +47,11 @@ function shuffleArray(array: number[]): number[] {
 }
 
 const chords: number[][] = [
-  shuffleArray(ntfs("C4", "D4", "E4", "F4", "G4", "A4", "B4")),
-  shuffleArray(ntfs("C#4", "D#4", "F#4", "G#4", "A#4")),
+  ntfs("C3", "D3", "E3", "G3", "A3"), // C Major Pentatonic (3rd Octave)
+  ntfs("E4", "G4", "A4", "C4", "D4"), // E Minor Pentatonic (4th Octave) - Shares notes with C Major
+  ntfs("G4", "A4", "B4", "D5", "E5"), // G Major Pentatonic (4th and 5th Octave)
+  ntfs("A3", "C4", "E4", "G4", "A4"), // A Minor Pentatonic (3rd and 4th Octave)
 ];
-
-// const frequenciesOnePitchHigher = [
-//   45 * semitoneRatio, // C (was B)
-//   73.42 * semitoneRatio, // D# (was D)
-//   82.41 * semitoneRatio, // F (was E)
-//   103.83 * semitoneRatio, // G# (was G)
-//   110 * semitoneRatio, // C (was B)
-//   // ... 1 octave lower than the base, raised by 1 pitch
-
-//   138.59 * semitoneRatio, // F (was E)
-//   146.83 * semitoneRatio, // G (was F#)
-//   164.81 * semitoneRatio, // A (was G#)
-//   207.65 * semitoneRatio, // C# (was C)
-//   // ... Base pentatonic, raised by 1 pitch
-
-//   220 * semitoneRatio, // C (was B)
-//   277.18 * semitoneRatio, // F# (was F)
-//   293.66 * semitoneRatio, // G# (was G)
-//   329.63 * semitoneRatio, // A# (was A)
-//   415.3 * semitoneRatio, // D (was C#)
-//   // ... 1 octave higher, raised by 1 pitch
-// ];
 
 const FQS: number[] = shuffleArray(chords.flat());
 
@@ -81,13 +61,23 @@ const Home = () => {
   const [isPlaying, setPLayingState] = useState<boolean>(false);
   const masterGainRef = useRef<GainNode | null>(null);
 
-  const [ADSR, setADSR] = useState<number[]>([0, 4, 0, 0]);
+  const [ADSR, setADSR] = useState<number[]>([0.05, 0, 0, 1]);
 
   const handleTrigger = useCallback(
     (index: number) => {
       if (ctx) {
         const [attack, sustain, decay, release] = ADSR;
-        const noteLength = attack + sustain + decay + release + 0.05;
+        const noteLength = attack + sustain + decay + release;
+
+        const lfo = new OscillatorNode(ctx, {
+          frequency: 2,
+        });
+
+        const lfoGain = new GainNode(ctx, {
+          gain: 1,
+        });
+
+        lfo.connect(lfoGain);
 
         const time = ctx.currentTime;
 
@@ -95,21 +85,27 @@ const Home = () => {
           frequency: FQS[index],
         });
 
+        lfo.connect(osc.frequency);
+
         const gain = new GainNode(ctx);
+        lfoGain.connect(gain);
 
         gain.gain.cancelScheduledValues(time);
         gain.gain.setValueAtTime(0, time);
-        gain.gain.linearRampToValueAtTime(1, time + attack);
+        gain.gain.linearRampToValueAtTime(0.2, time + attack);
         gain.gain.linearRampToValueAtTime(0, time + attack + sustain + release);
+        osc.connect(gain);
 
         if (masterGainRef.current) {
-          osc.connect(gain).connect(masterGainRef.current);
-          osc.start(ctx.currentTime);
-          osc.stop(ctx.currentTime + noteLength);
+          gain.connect(masterGainRef.current);
+          lfo.start(time);
+          osc.start(time);
+          osc.stop(time + noteLength);
+          lfo.stop(time + noteLength);
         }
       }
     },
-    [ctx]
+    [ctx, ADSR]
   );
 
   useEffect(() => {
@@ -117,7 +113,7 @@ const Home = () => {
       await ctx.audioWorklet.addModule("/worklets/randNoise.js");
 
       masterGainRef.current = new GainNode(ctx, {
-        gain: 0.5,
+        gain: 0.1,
       });
 
       masterGainRef.current.connect(ctx.destination);
@@ -128,7 +124,7 @@ const Home = () => {
 
       const sketch = new Rotation({
         count: FQS.length,
-        delay: 0.02,
+        delay: 0.01,
         onTrigger: handleTrigger,
       });
 

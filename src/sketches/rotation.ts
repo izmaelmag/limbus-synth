@@ -44,7 +44,7 @@ export class Rotation {
   }
 
   sketch = (p: p5) => {
-    const startAngle = 180;
+    const startAngle = 360;
     const hasTriggeredCallback: boolean[] = [];
 
     p.setup = () => {
@@ -53,7 +53,7 @@ export class Rotation {
       p.noFill();
       p.angleMode(p.DEGREES);
 
-      p.rotate(-90)
+      p.rotate(-90);
 
       for (let n = 0; n < this.params.count; n++) {
         hasTriggeredCallback[n] = false;
@@ -68,10 +68,11 @@ export class Rotation {
         this.currentFrame++;
       }
 
-      let speed = 0.3;
+      let speed = 0.1;
 
       for (let n = 0; n < this.params.count; n++) {
         let ca =
+          (n % 2 === 0 ? 180 : 0) +
           startAngle +
           this.dt * (speed + this.params.delay * n);
         let da = ca % 360;
