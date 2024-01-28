@@ -51,8 +51,6 @@ const chords: number[][] = [
   shuffleArray(ntfs("C#4", "D#4", "F#4", "G#4", "A#4")),
 ];
 
-console.log(chords.flat());
-
 // const frequenciesOnePitchHigher = [
 //   45 * semitoneRatio, // C (was B)
 //   73.42 * semitoneRatio, // D# (was D)
