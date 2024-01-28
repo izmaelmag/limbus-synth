@@ -1,87 +1,114 @@
 "use client";
 
 import { Headline } from "@/modules/Headline";
-import { Keyboard } from "@/modules/Keyboard";
 import styles from "./page.module.css";
-import GridLayout from "react-grid-layout";
-import { Trigger } from "@/modules/Trigger";
-import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useAudio } from "@/hooks/useAudio";
 import { Rotation } from "@/sketches/rotation";
 import P5Component from "@/components/P5";
 
-type OscillatorsParams = {
-  count: number;
-  delay: number; // from 0 to 1
-  frequencies: number[];
+const ntf = (note: string): number => {
+  const A4 = 440;
+  const notes = [
+    "C",
+    "C#",
+    "D",
+    "D#",
+    "E",
+    "F",
+    "F#",
+    "G",
+    "G#",
+    "A",
+    "A#",
+    "B",
+  ];
+
+  const octave = parseInt(note.slice(-1));
+  const noteIndex = notes.indexOf(note.slice(0, -1));
+
+  // Distance of the note from A4 in semitones
+  const semitoneDistance = (octave - 4) * 12 + noteIndex - 9; // -9 adjusts from C to A
+
+  return A4 * Math.pow(2, semitoneDistance / 12);
 };
 
-type OscillatorsOutput = {
-  oscillator: OscillatorNode;
-  gain: GainNode;
-};
+const ntfs = (...note: string[]): number[] => note.map(ntf);
 
-const createOscillators = (
-  ctx: AudioContext,
-  { count, frequencies, delay }: OscillatorsParams
-): OscillatorsOutput[] => {
-  const nodes: OscillatorsOutput[] = [];
+function shuffleArray(array: number[]): number[] {
+  for (let i = array.length - 1; i > 0; i--) {
+    // Generate a random index from 0 to i
+    const j = Math.floor(Math.random() * (i + 1));
 
-  const normalDelay = Math.min(Math.max(delay, 0), 1);
-
-  if (frequencies.length !== count)
-    throw new Error("count and frequencies length should be the same ");
-
-  for (let n = 0; n < count; n++) {
-    const oscillator = new OscillatorNode(ctx, {
-      frequency: frequencies[n],
-    });
-
-    const gain = new GainNode(ctx, {
-      gain: 1,
-    });
-
-    oscillator.connect(gain);
-
-    nodes[n] = {
-      oscillator,
-      gain,
-    };
+    // Swap elements at indices i and j
+    [array[i], array[j]] = [array[j], array[i]];
   }
+  return array;
+}
 
-  return nodes;
-};
+const chords: number[][] = [
+  shuffleArray(ntfs("C4", "D4", "E4", "F4", "G4", "A4", "B4")),
+  shuffleArray(ntfs("C#4", "D#4", "F#4", "G#4", "A#4")),
+];
+
+console.log(chords.flat());
+
+// const frequenciesOnePitchHigher = [
+//   45 * semitoneRatio, // C (was B)
+//   73.42 * semitoneRatio, // D# (was D)
+//   82.41 * semitoneRatio, // F (was E)
+//   103.83 * semitoneRatio, // G# (was G)
+//   110 * semitoneRatio, // C (was B)
+//   // ... 1 octave lower than the base, raised by 1 pitch
+
+//   138.59 * semitoneRatio, // F (was E)
+//   146.83 * semitoneRatio, // G (was F#)
+//   164.81 * semitoneRatio, // A (was G#)
+//   207.65 * semitoneRatio, // C# (was C)
+//   // ... Base pentatonic, raised by 1 pitch
+
+//   220 * semitoneRatio, // C (was B)
+//   277.18 * semitoneRatio, // F# (was F)
+//   293.66 * semitoneRatio, // G# (was G)
+//   329.63 * semitoneRatio, // A# (was A)
+//   415.3 * semitoneRatio, // D (was C#)
+//   // ... 1 octave higher, raised by 1 pitch
+// ];
+
+const FQS: number[] = shuffleArray(chords.flat());
 
 const Home = () => {
   const { ctx } = useAudio();
   const [sketchInstance, setSketchInstance] = useState<Rotation>();
-  const oscillatorsRef = useRef<OscillatorsOutput[]>([]);
+  const [isPlaying, setPLayingState] = useState<boolean>(false);
+  const masterGainRef = useRef<GainNode | null>(null);
+
+  const [ADSR, setADSR] = useState<number[]>([0, 4, 0, 0]);
 
   const handleTrigger = useCallback(
     (index: number) => {
       if (ctx) {
-        const [a, d, s, r] = [0.05, 0, 0, 2];
+        const [attack, sustain, decay, release] = ADSR;
+        const noteLength = attack + sustain + decay + release + 0.05;
 
-        let { currentTime: time } = ctx;
-        let noteLength = 3;
-
-        const { oscillator, gain } = oscillatorsRef.current[index];
+        const time = ctx.currentTime;
 
         const osc = new OscillatorNode(ctx, {
-          frequency: oscillator.frequency.value,
+          frequency: FQS[index],
         });
 
-        osc.connect(gain);
+        const gain = new GainNode(ctx);
 
         gain.gain.cancelScheduledValues(time);
         gain.gain.setValueAtTime(0, time);
-        gain.gain.linearRampToValueAtTime(1, time + a);
-        gain.gain.linearRampToValueAtTime(0, time + noteLength - r);
+        gain.gain.linearRampToValueAtTime(1, time + attack);
+        gain.gain.linearRampToValueAtTime(0, time + attack + sustain + release);
 
-        gain.connect(ctx.destination);
-
-        osc.start(ctx.currentTime);
-        osc.stop(ctx.currentTime + noteLength);
+        if (masterGainRef.current) {
+          osc.connect(gain).connect(masterGainRef.current);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + noteLength);
+        }
       }
     },
     [ctx]
@@ -91,25 +118,35 @@ const Home = () => {
     const initContext = async (ctx: AudioContext) => {
       await ctx.audioWorklet.addModule("/worklets/randNoise.js");
 
-      oscillatorsRef.current = createOscillators(ctx, {
-        count: 5,
-        delay: 1,
-        frequencies: [110, 140, 150, 200, 220],
+      masterGainRef.current = new GainNode(ctx, {
+        gain: 0.5,
       });
+
+      masterGainRef.current.connect(ctx.destination);
     };
 
     if (ctx) {
       initContext(ctx);
 
       const sketch = new Rotation({
-        count: 5,
-        delay: 0.25,
+        count: FQS.length,
+        delay: 0.02,
         onTrigger: handleTrigger,
       });
 
       setSketchInstance(sketch);
     }
   }, [ctx, handleTrigger]);
+
+  const handlePlayStart = useCallback(() => {
+    if (isPlaying) {
+      sketchInstance?.pause();
+      setPLayingState(false);
+    } else {
+      sketchInstance?.play();
+      setPLayingState(true);
+    }
+  }, [isPlaying, sketchInstance]);
 
   return (
     <main className={styles.main}>
@@ -120,12 +157,12 @@ const Home = () => {
       <div className={styles.layout}>
         {sketchInstance && <P5Component sketch={sketchInstance.sketch} />}
 
-        <button onClick={() => sketchInstance?.play()} type="button">
-          Start
+        <button onClick={handlePlayStart} type="button">
+          ⏯️
         </button>
 
         <button onClick={() => sketchInstance?.stop()} type="button">
-          Stop
+          ⏹️
         </button>
       </div>
 

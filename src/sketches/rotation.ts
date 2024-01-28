@@ -10,38 +10,21 @@ export class Rotation {
   params: Params;
 
   fps = 60;
-  duration = 10;
   currentFrame = 0;
   progress = 0;
   isPLaying = false;
 
   W = 400;
-  H = 400;
+  H = 720;
 
   constructor(params: Params) {
     this.params = params;
   }
 
-  get totalFrames() {
-    return this.fps * this.duration * this.params.count;
-  }
-
-  updateProgress() {
-    if (this.isPLaying) {
-      let progress = (this.currentFrame % this.totalFrames) / this.totalFrames;
-
-      if (progress >= 1) {
-        this.currentFrame = 0;
-      }
-
-      this.setProgress(progress);
-    }
-  }
-
   get center() {
     return {
       x: Math.round(this.W / 2),
-      y: Math.round(this.W / 2),
+      y: Math.round(this.H / 2),
     };
   }
 
@@ -53,53 +36,85 @@ export class Rotation {
   pause = () => (this.isPLaying = false);
   stop = () => {
     this.pause();
-    this.setProgress(0);
+    this.currentFrame = 0;
   };
 
+  get dt() {
+    return (this.currentFrame / this.fps) * 100;
+  }
+
   sketch = (p: p5) => {
-    const startAngle = (p.PI / 2) * -1; // 45 deg anti-clockwise
+    const startAngle = 180;
+    const hasTriggeredCallback: boolean[] = [];
 
     p.setup = () => {
       p.createCanvas(this.W, this.H);
       p.stroke(255);
       p.noFill();
+      p.angleMode(p.DEGREES);
+
+      p.rotate(-90)
+
+      for (let n = 0; n < this.params.count; n++) {
+        hasTriggeredCallback[n] = false;
+      }
     };
 
     p.draw = () => {
       p.translate(this.center.x, this.center.y);
-      p.background(30);
-      p.circle(0, 0, 200);
-      p.line(0, 0, 0, this.H * -0.5);
+      p.background(0);
 
       if (this.isPLaying) {
         this.currentFrame++;
-        this.updateProgress();
-      } else return;
+      }
+
+      let speed = 0.3;
 
       for (let n = 0; n < this.params.count; n++) {
-        let circleDelay = 1 - this.params.delay * (n + 1);
+        let ca =
+          startAngle +
+          this.dt * (speed + this.params.delay * n);
+        let da = ca % 360;
 
-        let da =
-          startAngle + p.TWO_PI * circleDelay * this.progress;
-
-        let distance = 100 - n * 10;
+        let distance = Math.floor(180 - (n / this.params.count) * 160);
 
         let x = distance * p.cos(da);
         let y = distance * p.sin(da);
 
-        p.circle(x, y, 10);
-        p.line(0, 0, x, y);
-        p.text(this.currentFrame, 10, 10);
+        p.stroke(20);
+        // p.line(0, 0, x, y);
+        p.noFill();
+        p.circle(0, 0, distance * 2);
+        p.fill(255);
+        p.noStroke();
+        p.circle(x, y, 8);
 
-        // if (da === p.PI * -0.5) {
-        //   this.params.onTrigger(n);
-        // }
+        let yCheck = Math.floor(Math.abs(y));
+        let xCheck = Math.floor(x);
+
+        p.push();
+        p.fill(255);
+        p.noStroke();
+        // p.text(n, x - 7, y - 14);
+        p.pop();
+
+        // Check if angle is close to 0 and callback hasn't been triggered
+        if (yCheck === 0 && xCheck > 0 && !hasTriggeredCallback[n]) {
+          this.params.onTrigger(n);
+          hasTriggeredCallback[n] = true;
+        }
+
+        // Reset hasTriggeredCallback if angle moves away from 0 beyond epsilon
+        if (yCheck > 0 && xCheck < 0 && hasTriggeredCallback[n]) {
+          hasTriggeredCallback[n] = false;
+        }
       }
 
-      if (this.currentFrame === this.totalFrames) {
-        this.currentFrame = 0;
-        this.setProgress(0);
-      }
+      p.noFill();
+      p.stroke(100);
+      p.circle(0, 0, 360);
+      p.stroke(255);
+      p.line(0, 0, this.W, 0);
     };
   };
 }

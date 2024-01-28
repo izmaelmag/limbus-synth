@@ -1,14 +1,16 @@
 import { AudioCTX } from "@/context/AudioContext";
 import { useContext, useMemo } from "react";
 
+type Output = {
+  ctxReady: boolean;
+  ctx: AudioContext | null;
+};
+
 export const useAudio = () => {
   const { ctx: context } = useContext(AudioCTX);
 
   const output = useMemo(() => {
-    if (context) {
-      console.log("Context init: ", context);
-      return { ctxReady: true, ctx: context };
-    }
+    if (context) return { ctxReady: true, ctx: context };
 
     return {
       ctxReady: false,
