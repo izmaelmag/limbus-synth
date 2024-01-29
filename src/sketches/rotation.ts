@@ -7,20 +7,32 @@ type Params = {
 };
 
 export class Rotation {
+  // Instance variables
   params: Params;
-
   fps = 60;
   currentFrame = 0;
-  progress = 0;
   isPLaying = false;
-
   W = 400;
-  H = 720;
+  H = 400;
+  startAngle = 360;
 
+  // Indexed trigger counter
+  hasTriggeredCallback: boolean[] = [];
+
+  // Initialization
   constructor(params: Params) {
     this.params = params;
+
+    this.init();
   }
 
+  init = () => {
+    for (let n = 0; n < this.params.count; n++) {
+      this.hasTriggeredCallback[n] = false;
+    }
+  };
+
+  // Computed values
   get center() {
     return {
       x: Math.round(this.W / 2),
@@ -28,94 +40,104 @@ export class Rotation {
     };
   }
 
-  setProgress = (progress: number) => {
-    this.progress = progress;
-  };
-
+  // PLayback control
   play = () => (this.isPLaying = true);
   pause = () => (this.isPLaying = false);
   stop = () => {
-    this.pause();
+    this.isPLaying = false;
     this.currentFrame = 0;
   };
+  step = () => {
+    if (this.isPLaying) {
+      this.currentFrame++;
+    }
+  };
 
-  get dt() {
-    return (this.currentFrame / this.fps) * 100;
-  }
+  // Timing
+  sec = () => (this.currentFrame / this.fps) * 100;
+  ms = () => this.sec() / 1000;
 
+  // Sketching
+
+  // Main sketch thread
   sketch = (p: p5) => {
-    const startAngle = 360;
-    const hasTriggeredCallback: boolean[] = [];
-
+    // Setup the sketch
     p.setup = () => {
       p.createCanvas(this.W, this.H);
       p.stroke(255);
       p.noFill();
       p.angleMode(p.DEGREES);
-
-      p.rotate(-90);
-
-      for (let n = 0; n < this.params.count; n++) {
-        hasTriggeredCallback[n] = false;
-      }
     };
 
+    // Drawing loop
     p.draw = () => {
-      p.translate(this.center.x, this.center.y);
+      const {
+        // Retrieve instance variables
+        W,
+        isPLaying,
+        startAngle,
+        hasTriggeredCallback,
+        center,
+        params: { count, delay, onTrigger },
+
+        // Retrieve instance methods
+        step,
+        sec,
+      } = this;
+
+      p.translate(center.x, center.y);
       p.background(0);
 
-      if (this.isPLaying) {
-        this.currentFrame++;
-      }
+      step();
 
       let speed = 0.1;
 
-      for (let n = 0; n < this.params.count; n++) {
-        let ca =
-          (n % 2 === 0 ? 180 : 0) +
-          startAngle +
-          this.dt * (speed + this.params.delay * n);
-        let da = ca % 360;
+      for (let n = 0; n < count; n++) {
+        // Get current angle of a circle
+        let ca = startAngle + sec();
 
-        let distance = Math.floor(180 - (n / this.params.count) * 160);
+        // Apply rotation speed based on point index and delay
+        ca *= speed + delay * (n + 1);
 
-        let x = distance * p.cos(da);
-        let y = distance * p.sin(da);
+        // Constrain angle in 0–360 degrees range
+        const da = ca % 360;
 
-        p.stroke(20);
-        // p.line(0, 0, x, y);
+        // Calculate point's distance from the center
+        const radius = Math.floor(180 - (n / count) * 160);
+
+        // Calculate point coordinates
+        const x = radius * p.cos(da);
+        const y = radius * p.sin(da);
+
+        p.stroke(40);
         p.noFill();
-        p.circle(0, 0, distance * 2);
+        p.circle(0, 0, (radius-4) * 2);
         p.fill(255);
         p.noStroke();
         p.circle(x, y, 8);
 
-        let yCheck = Math.floor(Math.abs(y));
-        let xCheck = Math.floor(x);
+        // Round point's angle for correct trigger event comparison
+        const angleCheck = Math.floor(Math.abs(da));
 
-        p.push();
-        p.fill(255);
-        p.noStroke();
-        // p.text(n, x - 7, y - 14);
-        p.pop();
+        // Check if circle should trigger or reset
+        const shouldTrigger = angleCheck === 0 && !hasTriggeredCallback[n];
+        const shouldReset = angleCheck > 0 && hasTriggeredCallback[n];
 
-        // Check if angle is close to 0 and callback hasn't been triggered
-        if (yCheck === 0 && xCheck > 0 && !hasTriggeredCallback[n]) {
-          this.params.onTrigger(n);
+        // Enable trigger state + execute callback
+        if (shouldTrigger) {
+          onTrigger(n);
           hasTriggeredCallback[n] = true;
         }
 
-        // Reset hasTriggeredCallback if angle moves away from 0 beyond epsilon
-        if (yCheck > 0 && xCheck < 0 && hasTriggeredCallback[n]) {
+        // Reset trigger state
+        if (shouldReset) {
           hasTriggeredCallback[n] = false;
         }
       }
 
       p.noFill();
-      p.stroke(100);
-      p.circle(0, 0, 360);
       p.stroke(255);
-      p.line(0, 0, this.W, 0);
+      p.line(0, 0, 180, 0);
     };
   };
 }
