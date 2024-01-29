@@ -62,7 +62,6 @@ export const Trigger = ({ interval = 1000, onTrigger }: Props) => {
         max={1000}
         step={10}
         value={500}
-        labels={["1", "2"]}
       />
 
       <div>{intervalMS} ms</div>
