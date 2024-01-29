@@ -1,9 +1,9 @@
 import React, {
-  useState,
   ChangeEvent,
   useRef,
   useEffect,
   useCallback,
+  useState,
 } from "react";
 import styles from "./styles.module.css";
 
@@ -11,55 +11,69 @@ interface Props {
   min: number;
   max: number;
   step: number;
-  value: number;
+  value?: number;
+  sensitivity?: number;
   onChange: (value: number) => void;
-  labels: string[];
 }
 
-const getRotation = (value: number, min: number, max: number): number => {
-  // Calculate the range of values
-  const range = max - min;
+const clamp = (val: number, min: number = 0, max: number = 1) =>
+  Math.min(Math.max(val, min), max);
 
-  // Calculate the percentage of the value within the range
-  const percentage = (value - min) / range;
+const angleThreshold = 135;
+const angleRange = Math.abs(angleThreshold) * 2;
 
-  // Calculate the angle in degrees based on the percentage
-  const angle = percentage * 360;
+const visualValue = (value: number) =>
+  value % 1 > 0 ? value.toFixed(2) : value;
 
-  // Return the angle
-  return angle;
-};
 export const Slider: React.FC<Props> = ({
   min,
   max,
   step,
-  value,
+  value: defaultValue = 0.5,
+  sensitivity = 200,
   onChange,
 }) => {
   const knobRef = useRef<HTMLDivElement>(null);
   const xRef = useRef<number | null>(null);
-
-  const handleSliderChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const value = Number(e.target.value);
-    const rotation = getRotation(value, min, max);
-    onChange(value);
-  };
+  const [value, setValue] = useState<number>(defaultValue);
 
   const rotationHandler = useCallback((e: MouseEvent) => {
-    if (!knobRef.current) return;
-
     const knob = knobRef.current;
+
+    if (!knob) return;
 
     const initialX = e.clientX - knob.offsetLeft + (xRef.current || 0);
 
     const handleMouseMove = (e: MouseEvent) => {
-      const xDiff = e.clientX - initialX;
+      const valueRange = max - min;
+      const stepsCount = valueRange / step;
+      const angleStep = angleRange / stepsCount;
+
+      // Calculate X coordinate drag offset
+      const xDiff = clamp(e.clientX - initialX, -sensitivity, sensitivity);
       xRef.current = xDiff * -1;
-      const angle = (xDiff * 180) / 200;
 
-      knob.style.transform = `rotate(${angle}deg)`;
+      // Floating values
+      const angle = clamp(
+        xDiff * (180 / sensitivity),
+        -angleThreshold,
+        angleThreshold
+      );
+      const value = clamp(
+        max * ((angle + angleThreshold) / angleRange),
+        min,
+        max
+      );
 
-      onChange(((angle % 360) / 360) * max);
+      const stepsTaken = Math.round((value - min) / step);
+
+      const knobAngle = -angleThreshold + angleStep * stepsTaken;
+      const knobValue = min + stepsTaken * step;
+
+      knob.style.transform = `rotate(${knobAngle}deg)`;
+
+      setValue(knobValue);
+      onChange(knobValue);
     };
 
     const handleMouseUp = () => {
@@ -83,7 +97,14 @@ export const Slider: React.FC<Props> = ({
 
   return (
     <div className={styles.customSlider}>
-      <div ref={knobRef} className={styles.knob} />
+      <div className={styles.knobContainer}>
+        <div ref={knobRef} className={styles.knob} />
+      </div>
+
+      <div className={styles.value}>{visualValue(value)}</div>
+
+      <div className={styles.min}>{visualValue(min)}</div>
+      <div className={styles.max}>{visualValue(max)}</div>
     </div>
   );
 };

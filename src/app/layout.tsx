@@ -1,6 +1,6 @@
 import cn from "classnames";
 import type { Metadata } from "next";
-import { Libre_Franklin } from "next/font/google";
+import { Space_Mono } from "next/font/google";
 import "./globals.css";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   description: "Web Synth",
 };
 
-const libreFranklin = Libre_Franklin({
-  weight: "variable",
+const libreFranklin = Space_Mono({
+  weight: ["400", "700"],
   subsets: ["latin"],
 });
 

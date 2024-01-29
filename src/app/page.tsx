@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAudio } from "@/hooks/useAudio";
 import { Rotation } from "@/sketches/rotation";
 import P5Component from "@/components/P5";
+import { Slider } from "@/components/Slider";
 
 const ntf = (note: string): number => {
   const A4 = 440;
@@ -149,6 +150,25 @@ const Home = () => {
       </div>
 
       <div className={styles.layout}>
+        <div className={styles.controls}>
+          <Slider
+            min={20}
+            max={40}
+            step={1}
+            value={24}
+            onChange={() => false}
+            sensitivity={100}
+          />
+          <Slider
+            min={0}
+            max={1}
+            step={0.01}
+            value={0}
+            onChange={() => false}
+            sensitivity={500}
+          />
+        </div>
+
         {sketchInstance && (
           <div className={styles.sketchContainer}>
             <P5Component sketch={sketchInstance.sketch} />

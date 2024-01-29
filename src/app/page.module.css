@@ -14,7 +14,6 @@
   min-height: 0;
   height: 100%;
   flex: 1 1;
-  overflow-y: auto;
   position: relative;
   padding: 8px 0;
   display: flex;
@@ -36,4 +35,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.controls {
+  display: flex;
+  gap: 32px;
 }
