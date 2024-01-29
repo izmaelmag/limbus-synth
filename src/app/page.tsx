@@ -149,7 +149,11 @@ const Home = () => {
       </div>
 
       <div className={styles.layout}>
-        {sketchInstance && <P5Component sketch={sketchInstance.sketch} />}
+        {sketchInstance && (
+          <div className={styles.sketchContainer}>
+            <P5Component sketch={sketchInstance.sketch} />
+          </div>
+        )}
 
         <button onClick={handlePlayStart} type="button">
           ⏯️

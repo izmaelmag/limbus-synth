@@ -4,7 +4,9 @@
   align-items: stretch;
   height: 100%;
   width: 100%;
+  max-width: 600px;
   padding: 8px;
+  margin: 0 auto;
   justify-content: space-between;
 }
 
@@ -14,9 +16,11 @@
   flex: 1 1;
   overflow-y: auto;
   position: relative;
-  border-top: 1px solid #222;
-  border-bottom: 1px solid #222;
   padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
 }
 
 .bottom {
@@ -28,16 +32,8 @@
   flex-direction: row;
 }
 
-.modulesLayout {
-  /* background: linear-gradient(to bottom, #333, #666); */
-  min-height: 100%;
-}
-
-.gridLayout {
-  max-width: 100%;
-  height: 100%;
-}
-
-.gridCell {
-  background-color: #333;
+.sketchContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
