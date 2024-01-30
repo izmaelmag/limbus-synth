@@ -9,7 +9,7 @@ import {
 } from "react";
 import styles from "./styles.module.css";
 import { useAudio } from "@/hooks/useAudio";
-import { Slider } from "@/components/Slider";
+import { Knob } from "@/components/Knob";
 import {
   CircularInput,
   CircularProgress,
@@ -56,7 +56,7 @@ export const Trigger = ({ interval = 1000, onTrigger }: Props) => {
         className={cn(styles.lamp, { [styles.blink]: active && count > 0 })}
       /> */}
 
-      <Slider
+      <Knob
         onChange={handleDelayChange}
         min={100}
         max={1000}

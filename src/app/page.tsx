@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useAudio } from "@/hooks/useAudio";
 import { Rotation } from "@/sketches/rotation";
 import P5Component from "@/components/P5";
-import { Slider } from "@/components/Slider";
+import { Knob } from "@/components/Knob";
 
 const ntf = (note: string): number => {
   const A4 = 440;
@@ -133,6 +133,7 @@ const Home = () => {
     }
   }, [ctx, handleTrigger]);
 
+
   const handlePlayStart = useCallback(() => {
     if (isPlaying) {
       sketchInstance?.pause();
@@ -151,7 +152,7 @@ const Home = () => {
 
       <div className={styles.layout}>
         <div className={styles.controls}>
-          <Slider
+          <Knob
             min={20}
             max={40}
             step={1}
@@ -159,7 +160,7 @@ const Home = () => {
             onChange={() => false}
             sensitivity={100}
           />
-          <Slider
+          <Knob
             min={0}
             max={1}
             step={0.01}
