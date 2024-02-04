@@ -6,7 +6,7 @@ type Output = {
   ctx: AudioContext | null;
 };
 
-export const useAudio = () => {
+export const useAudio = (): Output => {
   const { ctx: context } = useContext(AudioCTX);
 
   const output = useMemo(() => {
