@@ -37,3 +37,9 @@ export const shuffleArray = <T>(array: T[]): T[] => {
 
   return array;
 };
+
+export const CENTS_IN_OCTAVE = 1200;
+
+export const detune = (fq1: number, fq2: number): number => {
+  return CENTS_IN_OCTAVE * Math.log2(fq2 / fq1);
+};

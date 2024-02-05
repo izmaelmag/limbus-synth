@@ -1,4 +1,4 @@
-import { ntf } from "@/utils/sound";
+import { ntf, detune } from "@/utils/sound";
 
 type Options = {
   ctx: AudioContext;
@@ -6,12 +6,7 @@ type Options = {
   baseNote: string;
   detuneNote: string;
   gain?: number;
-};
-
-export const CENTS_IN_OCTAVE = 1200;
-
-export const detune = (fq1: number, fq2: number): number => {
-  return CENTS_IN_OCTAVE * Math.log2(fq2 / fq1);
+  detuneOffset?: number;
 };
 
 export const detuneDuration = (
@@ -28,11 +23,10 @@ export const playBuffer = ({
   baseNote,
   detuneNote,
   gain: gainValue,
+  detuneOffset = 0,
 }: Options): AudioBufferSourceNode => {
   const source = new AudioBufferSourceNode(ctx, { buffer });
-  const gain = new GainNode(ctx, {
-    gain: gainValue || 1,
-  });
+  const gain = new GainNode(ctx, { gain: gainValue || 1 });
 
   // Get notes frequencies
   const baseFq = ntf(baseNote);
@@ -44,7 +38,7 @@ export const playBuffer = ({
     ctx.currentTime + detuneDuration(baseFq, detuneFq, buffer.duration);
 
   // Apply detune
-  source.detune.value = detune(baseFq, detuneFq);
+  source.detune.value = detune(baseFq, detuneFq + detuneOffset);
 
   source.connect(gain).connect(ctx.destination);
 

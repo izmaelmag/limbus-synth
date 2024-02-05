@@ -9,13 +9,10 @@ import { PlayIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/Button";
 import { Pendulum } from "./sketch";
 import P5Component from "@/components/P5";
-import { ntfs } from "@/utils/sound";
 
-const Cmaj7_3 = ["B3", "G3", "E3", "C4"];
-const Cm7_2 = ["A#2", "G5", "D#2", "C2"];
-const Cshm7_2 = ["C#2", "E2", "G#2", "B2"];
+const Cmaj7_3 = ["B1", "G1", "E1", "C1", "E1", "G1", "B1"];
 
-const NOTES = [Cmaj7_3, Cm7_2, Cshm7_2, Cm7_2].flat();
+const NOTES = Cmaj7_3;
 
 const sounds = [
   {
@@ -42,22 +39,31 @@ const Poly = () => {
 
   const soundBufferRef = useRef<SoundData[]>([]);
 
-  const playSound = useCallback(
-    async (n: number) => {
+  const playPad = useCallback(
+    async (n: number, y: number) => {
+      if (ctx && soundBufferRef.current) {
+        await playBuffer({
+          ctx,
+          buffer: soundBufferRef.current[1].buffer,
+          baseNote: "C4",
+          gain: 0.4,
+          detuneNote: NOTES[n - 1],
+        });
+      }
+    },
+    [ctx]
+  );
+
+  const playSynth = useCallback(
+    async (n: number, y: number) => {
       if (ctx && soundBufferRef.current) {
         await playBuffer({
           ctx,
           buffer: soundBufferRef.current[0].buffer,
           baseNote: "C4",
-          gain: 0.7,
-          detuneNote: NOTES[n],
-        });
-
-        await playBuffer({
-          ctx,
-          buffer: soundBufferRef.current[1].buffer,
-          baseNote: "C4",
-          detuneNote: NOTES[n],
+          gain: 0.5,
+          detuneNote: NOTES[n - 1],
+          detuneOffset: y / 10,
         });
       }
     },
@@ -94,14 +100,16 @@ const Poly = () => {
         count: NOTES.length,
         delay: 0.1,
         smallCount: 4,
-        onTrigger: playSound,
+        onTrigger: (n: number) => false,
+        onTriggerX: playSynth,
+        onTriggerY: playPad,
       });
 
       setSketch(sketch);
 
       initContext(ctx);
     }
-  }, [ctx, playSound]);
+  }, [ctx, playSynth, playPad]);
 
   return (
     <main className={styles.main}>
