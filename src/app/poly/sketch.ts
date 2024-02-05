@@ -12,7 +12,7 @@ type Params = {
 
 export class Pendulum extends Sketch<Params> {
   W = 360;
-  H = Math.floor((this.W * 16) / 9);
+  H = 480;
   fps = 60;
   currentFrame = 0;
 
