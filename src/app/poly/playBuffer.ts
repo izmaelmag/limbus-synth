@@ -23,6 +23,7 @@ export const playBuffer = ({
   baseNote,
   detuneNote,
   gain: gainValue,
+  
   detuneOffset = 0,
 }: Options): AudioBufferSourceNode => {
   const source = new AudioBufferSourceNode(ctx, { buffer });
