@@ -16,3 +16,7 @@ body {
   color: #fff;
   background: #000;
 }
+
+a {
+  text-decoration: none;
+}
